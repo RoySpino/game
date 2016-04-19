@@ -32,8 +32,6 @@ void setOrth();
 void menu();
 void planetInfoScreen();
 
-worldEngine we("mt.obj");
-solidSphere sp(1,32,32);
 bool done= false;
 
 
