@@ -9,6 +9,7 @@
 #include <GL/glx.h>
 #include <GL/glu.h>
 #include <GL/glut.h>
+#include "solidSphere.h"
 
 using namespace std;
 
@@ -46,6 +47,8 @@ int window,
 float rtri = 0.0f, mvx =0, mvy=0, mvz=0;
 
 float savex = 0, savey = 0;
+
+solidSphere sp(1,32,32);
 
 // array of textures
 GLuint planTex[13], VITex, VITexAn, VITexLA, VIName;
@@ -307,6 +310,7 @@ void render()
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);	// Clear The Screen And The Depth Buffer
 	glLoadIdentity();	
 
+	sp.draw(0,0,0);
 	
 	setOrth();
 
