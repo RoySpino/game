@@ -1,3 +1,11 @@
+/*
+this iteration requieres that the obj file is using 
+triangles not squares
+1) no textures
+2) no normals
+3) no edges
+
+*/
 #ifndef WORLDENGINE_H
 #define WORLDENGINE_H
 #include <GL/gl.h>
