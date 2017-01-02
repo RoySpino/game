@@ -21,10 +21,12 @@ class solidSphere
     {
       redraw(1, 16, 32);
     }
-		solidSphere(float radius, unsigned int rings, unsigned int sectors)
-		{
+    // //////////////////////////////////////////////////////////////////////////////
+    solidSphere(float radius, unsigned int rings, unsigned int sectors)
+    {
       redraw(radius,rings,sectors);
     }
+    // //////////////////////////////////////////////////////////////////////////////
     void redraw(float radius, unsigned int rings, unsigned int sectors)
     {
 			rad =  radius;
@@ -44,12 +46,12 @@ class solidSphere
 			
 			for(int i=0; i<RINGS; i++)
 				for(int u=0; u< SECTORS; u++){
-					float const y = sin(-M_PI_2 + M_PI * i * R);
+					float const y = sin(-M_PI_2 + M_PI * i * R);   //-(pi/2) + pi * i * R
 					float const x = cos(2 * M_PI * u * S) * sin(M_PI * i * R);
 					float const z = sin(2 * M_PI * u * S) * sin(M_PI * i * R);
 					*t++ = u*S;
 					*t++ = i*R;
-
+ 
 					*v++ = x*radius;
 					*v++ = y*radius;
 					*v++ = z*radius;
@@ -68,6 +70,7 @@ class solidSphere
 					*i++ = (r+1) * sectors + s;
 				}
 		}
+		// //////////////////////////////////////////////////////////////////////////////
 		void draw(GLfloat x, GLfloat y, GLfloat z)
 		{
 			glMatrixMode(GL_MODELVIEW);
@@ -90,6 +93,7 @@ class solidSphere
 			glDrawElements(GL_QUADS, indices.size(), GL_UNSIGNED_SHORT, &indices[0]);
 			glPopMatrix();
 		}
+	 	// //////////////////////////////////////////////////////////////////////////////
 		void rot(float index,float x,float y,float z)
 		{
 			rotIndex = index;
@@ -97,26 +101,31 @@ class solidSphere
 			roty = y;
 			rotz = z;
 		}
+		// //////////////////////////////////////////////////////////////////////////////
 		float getx()
 		{
 			return X;
 		}
+		// //////////////////////////////////////////////////////////////////////////////
 		float gety()
 		{
 			return Y;
 		}
+		// //////////////////////////////////////////////////////////////////////////////
 		float getz()
 		{
 			return Z;
 		}
+		// //////////////////////////////////////////////////////////////////////////////
 		float getRad()
 		{
 			return rad;
 		}
-    void resize(float r)
-    {
-      redraw(r,16,32);
-    }
+		// //////////////////////////////////////////////////////////////////////////////
+    		void resize(float r)
+    		{
+      			redraw(r,16,32);
+    		}
 };
 
 #endif
