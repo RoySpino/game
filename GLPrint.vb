@@ -8,14 +8,17 @@ Public Class GLPrint
         Public xul, xur, xll, xlr As Double
         Public yul, yur, yll, ylr As Double
 
-        Sub New(xa, xb, xc, xd, ya, yb, yc, yd)
+        Sub New(xa, ya, xb, yb, xc, yc, xd, yd)
             xul = xa
-            xur = xb
-            xll = xc
-            xlr = xd
             yul = ya
+
+            xur = xb
             yur = yb
+
+            xll = xc
             yll = yc
+
+            xlr = xd
             ylr = yd
         End Sub
     End Class
@@ -50,13 +53,13 @@ Public Class GLPrint
 
             txtcordList.Add(New tp(
                             modVal,
+                            (1 - intDivVal),
                             (modVal + 0.0625),
+                            (1 - intDivVal),
                             (modVal + 0.0625),
+                            (1 - (intDivVal + 0.0625)),
                             modVal,
-                            intDivVal,
-                            intDivVal,
-                            (intDivVal + 0.0625),
-                            (intDivVal + 0.0625)))
+                            (1 - (intDivVal + 0.0625))))
         Next
     End Sub
 
