@@ -1,9 +1,10 @@
-﻿Imports OpenTK
+Imports OpenTK
 Imports OpenTK.Graphics.OpenGL
 Imports System
 Imports System.Runtime.InteropServices
 
 Public Class GLPrint
+    ' /////////////////////////////////////////////////////////////////////////////////////////////////////////
     Public Class tp
         Public xul, xur, xll, xlr As Double
         Public yul, yur, yll, ylr As Double
@@ -22,85 +23,159 @@ Public Class GLPrint
             ylr = yd
         End Sub
     End Class
+    ' /////////////////////////////////////////////////////////////////////////////////////////////////////////
     Dim X, Y, Z, size, gblRings, gblSectors As Double
+    Dim localDrawString As String
     Dim rotx, roty, rotz As Double
     Dim vl, nl, tl As List(Of Double)
     Dim il As List(Of Integer)
     Dim txtcordList As List(Of tp)
     Dim vert() As Double
     Dim normal(3) As Double
-    Dim indices(1) As Integer
+    Dim indices(1), lines, increment As Integer
     Dim texcoords(8) As Double
 
     Public Sub New(Optional size As Integer = 1)
         Dim modVal, intDivVal As Double
         Me.size = size / 2
         txtcordList = New List(Of tp)()
+        localDrawString = Nothing
 
         ' generate pre-made texture corordinate map
         For i As Integer = 0 To (1023)
-            If (i Mod 16) = 0 Then
-                modVal = 0
-            Else
-                modVal = 1.0 / (i Mod 16)
-            End If
+            ' x cord calculation]
+            modVal = 0.0625 * CDbl(i Mod 16)
 
-            If CInt(i / 16) = 0 Then
-                intDivVal = 0
-            Else
-                intDivVal = 1.0 / CInt(i / 16)
-            End If
+            ' y cord calculation
+            intDivVal = 0.0625 * Math.Floor(i / 16)
+
 
             txtcordList.Add(New tp(
-                            modVal,
-                            (1 - intDivVal),
-                            (modVal + 0.0625),
-                            (1 - intDivVal),
-                            (modVal + 0.0625),
+                            1 - modVal,
                             (1 - (intDivVal + 0.0625)),
-                            modVal,
-                            (1 - (intDivVal + 0.0625))))
+                            1 - (modVal + 0.0625),
+                            (1 - (intDivVal + 0.0625)),
+                            1 - (modVal + 0.0625),
+                            (1 - intDivVal),
+                            1 - modVal,
+                            (1 - intDivVal)))
         Next
+
+        il = New List(Of Integer)()
+        tl = New List(Of Double)()
+        vl = New List(Of Double)()
+        nl = New List(Of Double)()
     End Sub
 
+    ' /////////////////////////////////////////////////////////////////////////////////////////////////////////
     Sub print(lx As Double, ly As Double, data As String)
+        ' on init or new text given redraw mesh
+        If localDrawString <> data Then
+            If localDrawString = Nothing Then
+                If data = Nothing Then
+                    Return
+                End If
+                localDrawString = data
+                il.Clear()
+                tl.Clear()
+                vl.Clear()
+                nl.Clear()
+                lines = 0
+            End If
+
+            ' redraw text quad strip
+            For i As Integer = 0 To (data.Length - 1)
+                rectangle(data(i))
+
+                il.Add(i * 4)
+                il.Add((i * 4) + 1)
+                il.Add((i * 4) + 2)
+                il.Add((i * 4) + 3)
+            Next
+
+            texcoords = tl.ToArray()
+            vert = vl.ToArray()
+            normal = nl.ToArray()
+            indices = il.ToArray()
+        End If
+
+        '========================================================================================
+        ' draw to screen
         GL.Disable(EnableCap.Lighting)
         GL.PushMatrix()
-
-        For i As Integer = 0 To (data.Length - 1)
-            rectangle(i, data(i))
-            'il.add(i + 1)
-        Next
 
         GL.Translate(lx, ly, 0)
         GL.Rotate(rotx, 1, 0, 0)
         GL.Rotate(roty, 0, 1, 0)
         GL.Rotate(rotz, 0, 0, 1)
 
+        GL.EnableClientState(ArrayCap.VertexArray)
+        GL.EnableClientState(ArrayCap.NormalArray)
+        GL.EnableClientState(ArrayCap.TextureCoordArray)
+
+        GL.VertexPointer(3, VertexPointerType.Double, 0, vert)
+        GL.NormalPointer(NormalPointerType.Double, 0, normal)
+        GL.TexCoordPointer(2, TexCoordPointerType.Double, 0, texcoords)
+        GL.DrawElements(PrimitiveType.Quads, indices.Length, DrawElementsType.UnsignedInt, indices)
+
+        GL.DisableClientState(ArrayCap.VertexArray)
+        GL.DisableClientState(ArrayCap.NormalArray)
+        GL.DisableClientState(ArrayCap.TextureCoordArray)
+
         GL.PopMatrix()
         GL.Enable(EnableCap.Lighting)
     End Sub
 
-    Sub rectangle(charIndex As Integer, str As String)
-        'vl.Add(size * charIndex)
-        'vl.Add(0)
-        GL.Vertex3((size * charIndex), 0.0F, 0.0F)
-        GL.TexCoord2(texcoords(0), texcoords(1))
+    ' /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    Sub rectangle(str As String)
+        Dim index As Integer = Asc(str)
 
-        'vl.Add(size + (size * charIndex))
-        'vl.Add(0)
-        GL.Vertex3(size + (size * charIndex), 0.0F, 0.0F)
-        GL.TexCoord2(texcoords(2), texcoords(3))
+        ' add new lines do not print
+        Select Case index
+            Case 13
+                Return
+            Case 10
+                lines -= Me.size * 2.1
+                increment = 0
+                Return
+        End Select
 
-        'vl.Add(size + (size * charIndex))
-        'vl.Add((size * 2))
-        GL.Vertex3(size + (size * charIndex), (size * 2), 0.0F)
-        GL.TexCoord2(texcoords(4), texcoords(5))
+        increment += 1
+        vl.Add(size * increment)
+        vl.Add(0 + lines)
+        vl.Add(0)
+        tl.Add(txtcordList(index).xul)
+        tl.Add(txtcordList(index).yul)
+        'GL.Vertex3((size * increment), 0.0F, 0.0F)
+        'GL.TexCoord2(txtcordList(index).xul, txtcordList(index).yul)
 
-        'vl.Add((size * charIndex))
-        'vl.Add((size * 2))
-        GL.Vertex3((size * charIndex), (size * 2), 0.0F)
-        GL.TexCoord2(texcoords(6), texcoords(7))
+        vl.Add(size + (size * increment))
+        vl.Add(0 + lines)
+        vl.Add(0)
+        tl.Add(txtcordList(index).xur)
+        tl.Add(txtcordList(index).yur)
+        'GL.Vertex3(size + (size * increment), 0.0F, 0.0F)
+        'GL.TexCoord2(txtcordList(index).xur, txtcordList(index).yur)
+
+        vl.Add(size + (size * increment))
+        vl.Add((size * 2) + lines)
+        vl.Add(0)
+        tl.Add(txtcordList(index).xll)
+        tl.Add(txtcordList(index).yll)
+        'GL.Vertex3(size + (size * increment), (size * 2), 0.0F)
+        'GL.TexCoord2(txtcordList(index).xll, txtcordList(index).yll)
+
+        vl.Add((size * increment))
+        vl.Add((size * 2) + lines)
+        vl.Add(0)
+        tl.Add(txtcordList(index).xlr)
+        tl.Add(txtcordList(index).ylr)
+        'GL.Vertex3((size * increment), (size * 2), 0.0F)
+        'GL.TexCoord2(txtcordList(index).xlr, txtcordList(index).ylr)
+
+        nl.Add(0)
+        nl.Add(0)
+        nl.Add(1)
     End Sub
 
 End Class
